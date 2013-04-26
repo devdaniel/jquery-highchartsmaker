@@ -1,0 +1,61 @@
+<html>
+<head>
+
+<script type="text/javascript" src="/web-libraries/jquery/current/jquery.min.js"></script>
+<script type="text/javascript" src="/web-libraries/jqueryui/current/jquery-ui.custom.min.js"></script>
+<script type="text/javascript" src="/web-libraries/highcharts/current/highcharts.js"></script>
+<script type="text/javascript" src="jquery.highchartsmaker.js"></script>
+<style type="text/css">
+
+</style>
+
+</head>
+<body>
+
+<div id="chart"></div>
+
+<table id="data">
+<thead>
+    <tr>
+        <th>Date</th>
+        <th>Imps</th>
+        <th>Clicks</th>
+        <th>CTR</th>
+        <th>eCPM</th>
+    </tr>
+</thead>
+<tbody>
+    <tr>
+        <td>Apr 16, 2012</td>
+        <td>1</td>
+        <td>1</td>
+        <td>100%</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>Apr 17, 2012</td>
+        <td>2</td>
+        <td>1</td>
+        <td>50%</td>
+        <td>$0.88</td>
+    </tr>
+    <tr>
+        <td>Apr 19, 2012</td>
+        <td>4</td>
+        <td>1</td>
+        <td>25%</td>
+        <td>$1.37</td>
+    </tr>
+</tbody>
+</table>
+<br />
+
+<script type="text/javascript">
+$(function() {
+    Highcharts.setOptions({ global: { useUTC: false } });
+    var chart = $('#chart').highchartsMaker($('#data'), {"yAxis":{"min":0}});
+});
+</script>
+
+</body>
+</html>
