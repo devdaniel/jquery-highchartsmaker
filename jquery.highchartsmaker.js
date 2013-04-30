@@ -94,43 +94,42 @@ function getValidDate(date) {
 
             // Set up the series data
             var last_date;
+
+            var r0c0 = datatable.children('tbody').children('tr').eq(0).children('td').eq(0).html();
+            // Check the first column for date type?
+            if(isValidDate(r0c0)) {
+                iterator = 'date';
+                start_date = getValidDate(r0c0).valueOf();
+            }
+            // If table is date-based, figure out interval between first and second row.
+            // We will assume this is the regular interval per table row.
+            if(iterator == 'date') {
+                var point_next = getValidDate(datatable.children('tbody').children('tr').eq(1).children('td').eq(0).html());
+                date_interval = Math.abs(point_next - start_date);
+            }
+
             datatable.children('tbody').children('tr').each(function(row) {
-                $(this).children('td').each(function(col) {
-                    if(row == 0 && col == 0) {
-                        // Check the first column for date type?
-                        if(isValidDate($(this).html())) {
-                            iterator = 'date';
-                            start_date = getValidDate($(this).html()).valueOf();
-                        }
-                    }
-                    if(row == 1 && col == 0) {
-                        // If table is date-based, figure out interval between first and second row.
-                        // We will assume this is the regular interval per table row.
-                        if(iterator == 'date') {
-                            var point_next = getValidDate($(this).html());
-                            date_interval = Math.abs(point_next - start_date);
-                        }
-                    }
-                    if(row > 1 && col == 0) {
-                        /* Starting on row 3 for date-iterated tables,
-                         * Fill in gaps in dates with nulls, so chart will insert blank spaces
-                         */
-                        if(iterator == 'date') {
-                            var colcount = columns.length-1; // Don't count date as column
-                            var point_next = getValidDate($(this).html());
-                            var gap = Math.floor(point_next - last_date)-1;
-                            if(gap > date_interval) {
-                                // Missing rows, find out how many
-                                var missing_rows = Math.floor(gap/date_interval);
-                                // Fill in each column with null * missing row count
-                                for(var c = 1; c <= colcount; c++) { // Col count starts @ 1
-                                    for(var r = 0; r < missing_rows; r++) {
-                                        data[c].push(null);
-                                    }
+                if(row > 1) {
+                    /* Starting on row 3 for date-iterated tables,
+                     * Fill in gaps in dates with nulls, so chart will insert blank spaces
+                     */
+                    if(iterator == 'date') {
+                        var colcount = columns.length-1; // Don't count date as column
+                        var point_next = getValidDate($(this).children('td').eq(0).html());
+                        var gap = Math.floor(point_next - last_date)-1;
+                        if(gap > date_interval) {
+                            // Missing rows, find out how many
+                            var missing_rows = Math.floor(gap/date_interval);
+                            // Fill in each column with null * missing row count
+                            for(var c = 1; c <= colcount; c++) { // Col count starts @ 1
+                                for(var r = 0; r < missing_rows; r++) {
+                                    data[c].push(null);
                                 }
                             }
                         }
                     }
+                }
+                $(this).children('td').each(function(col) {
                     if(iterator == 'date' && col == 0) {
                         // Keep track of last date processed so we know how big gaps are
                         last_date = getValidDate($(this).html());
