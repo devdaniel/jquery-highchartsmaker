@@ -72,7 +72,8 @@ function getValidDate(date) {
             yAxis: {
                 min: 0
             },
-            date_only: false
+            date_only: false,
+            date_interval: 0
         };
         var options = $.extend({}, defaultOptions, options);
 
@@ -83,8 +84,8 @@ function getValidDate(date) {
             var columns = [];
             var data = [];
             var series = [];
-            var start_date = 0;
-            var date_interval = 0;
+            var start_date = 0; // day*hour(24)*min(60)*sec(60)*ms(1000)
+            var date_interval = options.date_interval;
 
             // Set up the series names
             datatable.children('thead').children('tr').children('th').each(function(index) {
@@ -103,14 +104,14 @@ function getValidDate(date) {
             }
             // If table is date-based, figure out interval between first and second row.
             // We will assume this is the regular interval per table row.
-            if(iterator == 'date') {
+            if(iterator == 'date' && date_interval == 0) {
                 var point_next = getValidDate(datatable.children('tbody').children('tr').eq(1).children('td').eq(0).html());
                 date_interval = Math.abs(point_next - start_date);
             }
 
             datatable.children('tbody').children('tr').each(function(row) {
-                if(row > 1) {
-                    /* Starting on row 3 for date-iterated tables,
+                if(row > 1 || date_interval > 0) {
+                    /* Starting on row 3 (unless manually specified, then row 2) for date-iterated tables,
                      * Fill in gaps in dates with nulls, so chart will insert blank spaces
                      */
                     if(iterator == 'date') {
