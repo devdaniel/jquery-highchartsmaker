@@ -38,6 +38,27 @@ function getValidDate(date) {
     return false;
 }
 
+function columnSelector(columns, data, chart, group_by) {
+    var randomnumber = Math.floor(Math.random()*100000);
+    var sel = $('<select id="' + randomnumber + '" class="columnSelector">');
+    $('#columnSelector').replaceWith(sel);
+    $(columns).each(function(index) {
+        if(index != 0 && index != group_by)
+            sel.append($("<option>").attr('value',index).text(this));
+    });
+
+    $('#' + randomnumber + '').change(function() {
+        changeData(columns, data, chart, $(this).attr('value'));
+    });
+}
+
+function changeData(columns, data, chart, value) {
+    $(chart.series).each(function(index) {
+        chart.series[index].setData(data[index][value]);
+    });
+    chart.yAxis[0].setTitle({text: columns[value]});
+}
+
 (function($){
     $.highchartsMaker = function(el, datatable, options){
         // To avoid scope issues, use 'base' instead of 'this'
@@ -73,6 +94,7 @@ function getValidDate(date) {
                 min: 0
             },
             date_only: false,
+            group_by: false,
             date_interval: 0
         };
         var options = $.extend({}, defaultOptions, options);
@@ -86,17 +108,35 @@ function getValidDate(date) {
             var series = [];
             var start_date = 0; // day*hour(24)*min(60)*sec(60)*ms(1000)
             var date_interval = options.date_interval;
+            var group_by = options.group_by;
+            var groups = [];
 
             // Set up the series names
+            if(group_by) {
+                $('tr td:nth-child(' + (group_by + 1) + ')', datatable).each(function(i) {
+                    if($.inArray($(this).html(), groups) == -1) {
+                        groups.push($(this).html());
+                        data.push(new Array());
+                    }
+                });
+            }
+
             datatable.children('thead').children('tr').children('th').each(function(index) {
                 columns.push($(this).html());
-                data.push(new Array());
+                if(group_by)
+                    $.each( data , function( key, value ) {
+                        data[key].push(new Array());
+                    });
+                else
+                    data.push(new Array());
             });
 
             // Set up the series data
             var last_date;
+            var visited_groups = [];
 
             var r0c0 = datatable.children('tbody').children('tr').eq(0).children('td').eq(0).html();
+
             // Check the first column for date type?
             if(isValidDate(r0c0)) {
                 iterator = 'date';
@@ -105,61 +145,110 @@ function getValidDate(date) {
             // If table is date-based, figure out interval between first and second row.
             // We will assume this is the regular interval per table row.
             if(iterator == 'date' && date_interval == 0) {
-                var point_next = getValidDate(datatable.children('tbody').children('tr').eq(1).children('td').eq(0).html());
-                date_interval = Math.abs(point_next - start_date);
+                var i = 0;
+                do {
+                    var point_next = getValidDate(datatable.children('tbody').children('tr').eq(i).children('td').eq(0).html());
+                    date_interval = Math.abs(point_next - start_date);
+                    i++;
+                }while(date_interval == 0);
             }
 
+            var group_by_col;
+            var colcount;
+            var point_next;
+            var gap;
+            var value;
             datatable.children('tbody').children('tr').each(function(row) {
                 if(row > 1 || date_interval > 0) {
                     /* Starting on row 3 (unless manually specified, then row 2) for date-iterated tables,
                      * Fill in gaps in dates with nulls, so chart will insert blank spaces
                      */
                     if(iterator == 'date') {
-                        var colcount = columns.length-1; // Don't count date as column
-                        var point_next = getValidDate($(this).children('td').eq(0).html());
-                        var gap = Math.floor(point_next - last_date)-1;
+                        colcount = group_by ? groups.length : columns.length-1; // Don't count date as column
+                        point_next = getValidDate($(this).children('td').eq(0).html());
+                        gap = Math.floor(point_next - last_date)-1;
                         if(gap > date_interval) {
                             // Missing rows, find out how many
-                            var missing_rows = Math.floor(gap/date_interval);
+                           var missing_rows = Math.floor(gap/date_interval);
                             // Fill in each column with null * missing row count
-                            for(var c = 1; c <= colcount; c++) { // Col count starts @ 1
+                            for(var c = 1; c < colcount; c++) { // Col count starts @ 1
                                 for(var r = 0; r < missing_rows; r++) {
-                                    data[c].push(null);
+                                    if(group_by) {
+                                        columns.forEach(function(el, col) {
+                                            data[c][col].push(null);
+                                        });
+                                    } else {
+                                        data[c].push(null);
+                                    }
                                 }
                             }
                         }
                     }
+               }
+
+                if(group_by) {
+                    point_next = getValidDate($(this).children('td').eq(0).html());
+                    group_by_col = $.inArray($(this).children().eq(group_by).html(), groups);
+
+                    if(last_date != undefined && point_next.valueOf() != last_date.valueOf()) {
+                          data.forEach(function(el, index) {
+                               if($.inArray(index, visited_groups) == -1) {
+                                    columns.forEach(function(el, col) {
+                                        data[index][col].push(null);
+                                    });
+                                }
+                            });
+                            visited_groups = [];
+                    }
+                        visited_groups.push(group_by_col);
                 }
+
+
                 $(this).children('td').each(function(col) {
                     if(iterator == 'date' && col == 0) {
                         // Keep track of last date processed so we know how big gaps are
                         last_date = getValidDate($(this).html());
                     }
+
                     // For missing fields, use null to skip the point in chart rendering
-                    var value = parseFloat($(this).html().replace(/\$|,/g,''));
+                    value = parseFloat($(this).html().replace(/\$|,/g,''));
                     if(isNaN(value)) {
-                        data[col].push(null);
+                        group_by ? data[group_by_col][col].push(null) : data[col].push(null);
                     } else {
-                        data[col].push(value);
+                        group_by ? data[group_by_col][col].push(value) : data[col].push(value);
                     }
                 });
             });
 
+
             // Set up the series array
-            columns.forEach(function(el, index) {
-                var series_object = new Object();
-                if(index == 0 && (iterator == 'date' || iterator == 'numeric')) {
-                    // nothing special, just skip first
-                } else {
-                    series_object.name = columns[index];
-                    series_object.data = data[index];
+            if(group_by) {
+                groups.forEach(function(el, index) {
+                    var series_object = new Object();
+                    series_object.name = groups[index];
+                    series_object.data = data[index][2];
                     if(iterator == 'date') {
                         series_object.pointStart = start_date;
                         series_object.pointInterval = date_interval;
                     }
                     series.push(series_object);
-                }
-            });
+                });
+            } else {
+                columns.forEach(function(el, index) {
+                    var series_object = new Object();
+                    if(index == 0 && (iterator == 'date' || iterator == 'numeric')) {
+                        // nothing special, just skip first
+                    } else {
+                        series_object.name = columns[index];
+                        series_object.data = data[index];
+                        if(iterator == 'date') {
+                            series_object.pointStart = start_date;
+                            series_object.pointInterval = date_interval;
+                        }
+                        series.push(series_object);
+                    }
+                });
+            }
 
             // Build skeleton of highcharts data object
             var now = new Date();
@@ -182,7 +271,7 @@ function getValidDate(date) {
             chart_options.title.text = options.title;
             chart_options.subtitle.text = options.subtitle;
             chart_options.yAxis.min = options.yAxis.min;
-            chart_options.yAxis.title.text = 'Amount';
+            chart_options.yAxis.title.text = group_by ? columns[2] : 'Amount';
 
             // Do not render labels for times when we are only dealing with dates or higher
             if(options.date_only == true) {
@@ -242,6 +331,8 @@ function getValidDate(date) {
 
             var chart_created = new Highcharts.Chart(chart_options);
 
+            if(group_by)
+                columnSelector(columns, data, chart_created, group_by);
             // END DOING STUFF
         });
     };
