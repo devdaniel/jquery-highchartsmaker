@@ -307,7 +307,7 @@ function changeData(columns, data, chart, value) {
             chart_options.series = series;
 
             // ERROR HANDLING
-            if(chart_options.series[0].data.length == 0) {
+            if(chart_options.series[0] === undefined || chart_options.series[0].data.length == 0) {
                 console.error('highchartsMaker: zero-length data, cannot render chart. Using fallback.');
                 chart_options.chart.backgroundColor = '#FCC';
                 chart_options.title.text = 'CHART ERROR :-(';
