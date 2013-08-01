@@ -95,7 +95,6 @@ function changeData(columns, data, chart, value) {
             },
             date_only: false,
             group_by: false,
-            reverse: false,
             date_interval: 0
         };
         var options = $.extend({}, defaultOptions, options);
@@ -110,18 +109,11 @@ function changeData(columns, data, chart, value) {
             var start_date = 0; // day*hour(24)*min(60)*sec(60)*ms(1000)
             var date_interval = options.date_interval;
             var group_by = options.group_by;
-            var reverse = options.reverse;
             var groups = [];
-            var table = datatable.clone();
-
-            if(reverse) {
-                var tbody = $('tbody', table);
-                tbody.html($('tr',tbody).get().reverse());
-            }
 
             // Set up the series names
             if(group_by) {
-                $('tr td:nth-child(' + (group_by + 1) + ')', table).each(function(i) {
+                $('tr td:nth-child(' + (group_by + 1) + ')', datatable).each(function(i) {
                     if($.inArray($(this).html(), groups) == -1) {
                         groups.push($(this).html());
                         data.push(new Array());
@@ -129,7 +121,7 @@ function changeData(columns, data, chart, value) {
                 });
             }
 
-            table.children('thead').children('tr').children('th').each(function(index) {
+            datatable.children('thead').children('tr').children('th').each(function(index) {
                 columns.push($(this).html());
                 if(group_by)
                     $.each( data , function( key, value ) {
@@ -143,7 +135,7 @@ function changeData(columns, data, chart, value) {
             var last_date;
             var visited_groups = [];
 
-            var r0c0 = table.children('tbody').children('tr').eq(0).children('td').eq(0).html();
+            var r0c0 = datatable.children('tbody').children('tr').eq(0).children('td').eq(0).html();
 
             // Check the first column for date type?
             if(isValidDate(r0c0)) {
@@ -155,7 +147,7 @@ function changeData(columns, data, chart, value) {
             if(iterator == 'date' && date_interval == 0) {
                 var i = 0;
                 do {
-                    var point_next = getValidDate(table.children('tbody').children('tr').eq(i).children('td').eq(0).html());
+                    var point_next = getValidDate(datatable.children('tbody').children('tr').eq(i).children('td').eq(0).html());
                     date_interval = Math.abs(point_next - start_date);
                     i++;
                 }while(date_interval == 0);
@@ -166,7 +158,7 @@ function changeData(columns, data, chart, value) {
             var point_next;
             var gap;
             var value;
-            table.children('tbody').children('tr').each(function(row) {
+            datatable.children('tbody').children('tr').each(function(row) {
                 if(row > 1 || date_interval > 0) {
                     /* Starting on row 3 (unless manually specified, then row 2) for date-iterated tables,
                      * Fill in gaps in dates with nulls, so chart will insert blank spaces
