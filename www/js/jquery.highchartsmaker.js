@@ -15,7 +15,7 @@ function isValidDate(date){
         var y = matches[1];
         var m = matches[2] - 1;
         var d = matches[3];
-        var composedDate = new Date(y, m, d);
+        var composedDate = new Date.UTC(y, m, d);
         return composedDate.getDate() == d &&
                 composedDate.getMonth() == m &&
                 composedDate.getFullYear() == y;
@@ -31,7 +31,9 @@ function getValidDate(date) {
             var y = matches[1];
             var m = matches[2] - 1;
             var d = matches[3];
-            var composedDate = new Date(y, m, d);
+            var composedDate = new Date.UTC(y, m, d);
+        } else {
+            return Date.UTC(composedDate.getFullYear(), composedDate.getMonth(), composedDate.getDate());
         }
         return composedDate;
     }
