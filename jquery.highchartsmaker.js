@@ -98,14 +98,15 @@ function changeData(columns, data, chart, value) {
             date_only: false,
             group_by: false,
             reverse: false,
-            date_interval: 0
+            date_interval: 0,
+            iterator: 'none'
         };
         var options = $.extend({}, defaultOptions, options);
 
         return this.each(function(){
             (new $.highchartsMaker(this, datatable, options));
 
-            var iterator = 'none';
+            var iterator = options.iterator;
             var columns = [];
             var data = [];
             var series = [];
@@ -115,6 +116,7 @@ function changeData(columns, data, chart, value) {
             var reverse = options.reverse;
             var groups = [];
             var table = datatable.clone();
+            var labels = [];
 
             if(reverse) {
                 var tbody = $('tbody', table);
@@ -219,6 +221,10 @@ function changeData(columns, data, chart, value) {
                         // Keep track of last date processed so we know how big gaps are
                         last_date = getValidDate($(this).html());
                     }
+                    if(iterator == 'label' && col == 0) {
+                        // Save this value as label
+                        labels.push($(this).html());
+                    }
 
                     // For missing fields, use null to skip the point in chart rendering
                     value = parseFloat($(this).html().replace(/\$|,/g,''));
@@ -246,7 +252,7 @@ function changeData(columns, data, chart, value) {
             } else {
                 columns.forEach(function(el, index) {
                     var series_object = new Object();
-                    if(index == 0 && (iterator == 'date' || iterator == 'numeric')) {
+                    if(index == 0 && (iterator == 'date' || iterator == 'numeric' || iterator == 'label')) {
                         // nothing special, just skip first
                     } else {
                         series_object.name = columns[index];
@@ -303,11 +309,19 @@ function changeData(columns, data, chart, value) {
             if(iterator == 'date') {
                 chart_options.xAxis.type = 'datetime';
             }
-            chart_options.tooltip = {
-                formatter: function () {
-                    return '<b>'+Highcharts.dateFormat('%B %d %Y', this.x)+'</b><br /><b style="color:'+this.series.color+';">'+this.series.name+'</b>: '+numberWithCommas(this.y);
-                }
-            };
+            if(iterator == 'label') {
+                chart_options.tooltip = {
+                    formatter: function () {
+                        return '<b>'+labels[this.x]+'</b><br /><b style="color:'+this.series.color+';">'+this.series.name+'</b>: '+numberWithCommas(this.y);
+                    }
+                };
+            } else {
+                chart_options.tooltip = {
+                    formatter: function () {
+                        return '<b>'+Highcharts.dateFormat('%B %d %Y', this.x)+'</b><br /><b style="color:'+this.series.color+';">'+this.series.name+'</b>: '+numberWithCommas(this.y);
+                    }
+                };
+            }
 
             // Chart Type Options
             chart_options.plotOptions.line = new Object();
@@ -328,15 +342,16 @@ function changeData(columns, data, chart, value) {
 
             // DEBUGZ0R
             /*
-            console.log(JSON.stringify(chart_options));
-            console.log(datatable);
-            console.log(columns);
-            console.log(data);
+            console.log('chart_options', JSON.stringify(chart_options));
+            console.log('datatable', datatable);
+            console.log('columns', columns);
+            console.log('data', data);
             console.log('DATA LENGTH:' + data.length);
-            console.log(iterator);
-            console.log(JSON.stringify(series));
-            console.log(start_date);
-            console.log(date_interval);
+            console.log('iterator', iterator);
+            console.log('series', JSON.stringify(series));
+            console.log('start_date', start_date);
+            console.log('date_interval', date_interval);
+            console.log('labels', labels);
             */
 
             var chart_created = new Highcharts.Chart(chart_options);
