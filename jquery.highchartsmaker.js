@@ -5,63 +5,65 @@
  * $(target selector).highchartsMaker($(data table selector), {options});
  */
 
-function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-function isValidDate(date){
-    if(new Date(date) == 'Invalid Date') {
-        var matches = /^(\d{4})[-\/](\d{2})[-\/](\d{2})$/.exec(date);
-        if (matches == null) return false;
-        var y = matches[1];
-        var m = matches[2] - 1;
-        var d = matches[3];
-        var composedDate = new Date.UTC(y, m, d);
-        return composedDate.getDate() == d &&
-                composedDate.getMonth() == m &&
-                composedDate.getFullYear() == y;
-    }
-    return true;
-};
-function getValidDate(date) {
-    if(isValidDate(date)) {
-        var composedDate = new Date(date);
-        if(composedDate == 'Invalid Date') {
+(function($){
+    function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    };
+
+    function isValidDate(date){
+        if(new Date(date) == 'Invalid Date') {
             var matches = /^(\d{4})[-\/](\d{2})[-\/](\d{2})$/.exec(date);
             if (matches == null) return false;
             var y = matches[1];
             var m = matches[2] - 1;
             var d = matches[3];
             var composedDate = new Date.UTC(y, m, d);
-        } else {
-            return Date.UTC(composedDate.getFullYear(), composedDate.getMonth(), composedDate.getDate());
+            return composedDate.getDate() == d &&
+                    composedDate.getMonth() == m &&
+                    composedDate.getFullYear() == y;
         }
-        return composedDate;
+        return true;
+    };
+
+    function getValidDate(date) {
+        if(isValidDate(date)) {
+            var composedDate = new Date(date);
+            if(composedDate == 'Invalid Date') {
+                var matches = /^(\d{4})[-\/](\d{2})[-\/](\d{2})$/.exec(date);
+                if (matches == null) return false;
+                var y = matches[1];
+                var m = matches[2] - 1;
+                var d = matches[3];
+                var composedDate = new Date.UTC(y, m, d);
+            } else {
+                return Date.UTC(composedDate.getFullYear(), composedDate.getMonth(), composedDate.getDate());
+            }
+            return composedDate;
+        }
+        return false;
+    };
+
+    function columnSelector(columns, data, chart, group_by) {
+        var randomnumber = Math.floor(Math.random()*100000);
+        var sel = $('<select id="' + randomnumber + '" class="columnSelector">');
+        $('#columnSelector').replaceWith(sel);
+        $(columns).each(function(index) {
+            if(index != 0 && index != group_by)
+                sel.append($("<option>").attr('value',index).text(this));
+        });
+
+        $('#' + randomnumber + '').change(function() {
+            changeData(columns, data, chart, $(this).attr('value'));
+        });
     }
-    return false;
-}
 
-function columnSelector(columns, data, chart, group_by) {
-    var randomnumber = Math.floor(Math.random()*100000);
-    var sel = $('<select id="' + randomnumber + '" class="columnSelector">');
-    $('#columnSelector').replaceWith(sel);
-    $(columns).each(function(index) {
-        if(index != 0 && index != group_by)
-            sel.append($("<option>").attr('value',index).text(this));
-    });
+    function changeData(columns, data, chart, value) {
+        $(chart.series).each(function(index) {
+            chart.series[index].setData(data[index][value]);
+        });
+        chart.yAxis[0].setTitle({text: columns[value]});
+    }
 
-    $('#' + randomnumber + '').change(function() {
-        changeData(columns, data, chart, $(this).attr('value'));
-    });
-}
-
-function changeData(columns, data, chart, value) {
-    $(chart.series).each(function(index) {
-        chart.series[index].setData(data[index][value]);
-    });
-    chart.yAxis[0].setTitle({text: columns[value]});
-}
-
-(function($){
     $.highchartsMaker = function(el, datatable, options){
         // To avoid scope issues, use 'base' instead of 'this'
         // to reference this class from internal events and functions.
