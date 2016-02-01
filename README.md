@@ -12,7 +12,7 @@ Apr 18, 2012 | 2 | 1 | 50% | $0.88
 Apr 19, 2012 | 4 | 1 | 25% | $1.37
 
 ```html
-<div id="chart"></div>
+<div id="chart"></div> <!-- You will need to create a target element for where the chart will go -->
 <table id="data">
 <thead>
     <tr>
@@ -49,7 +49,7 @@ Apr 19, 2012 | 4 | 1 | 25% | $1.37
 </table>
 ```
 
-### Call highchartsmaker plugin
+### Call highchartsmaker plugin on the target element (in this case, the element ID 'chart')
 ```javascript
 $('#chart').highchartsMaker($(#data), {
     // Options (or pass empty object for no special options)
