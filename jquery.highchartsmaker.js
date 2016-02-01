@@ -185,7 +185,7 @@
                             // Missing rows, find out how many
                            var missing_rows = Math.floor(gap/date_interval);
                             // Fill in each column with null * missing row count
-                            for(var c = 1; c < colcount; c++) { // Col count starts @ 1
+                            for(var c = 1; c <= colcount; c++) { // Col count starts @ 1
                                 for(var r = 0; r < missing_rows; r++) {
                                     if(group_by) {
                                         columns.forEach(function(el, col) {
@@ -284,7 +284,7 @@
             chart_options.chart.renderTo = $(this).attr('id');
             chart_options.chart.type = 'line';
             chart_options.chart.zoomType = 'x';
-            chart_options.credits.href='http://www.chitika.com/';
+            chart_options.credits.href='http://www.danielsmallwood.com/';
             chart_options.credits.text='Data Generated: ' + now.toString("dddd, mmmm dS, yyyy, h:MM:ss TT");
             chart_options.title.text = options.title;
             chart_options.subtitle.text = options.subtitle;
