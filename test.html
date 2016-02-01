@@ -51,8 +51,8 @@
 
 <script type="text/javascript">
 $(function() {
-    Highcharts.setOptions({ global: { useUTC: false } });
-    var chart = $('#chart').highchartsMaker($('#data'), {"yAxis":{"min":0}, "date_interval":86400000});
+    Highcharts.setOptions({ global: { useUTC: true } });
+    var chart = $('#chart').highchartsMaker($('#data'), {"yAxis":{"min":0}, "date_interval":86400000, "title":"Example Chart"});
 });
 </script>
 
