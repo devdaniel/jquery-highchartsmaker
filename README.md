@@ -12,6 +12,7 @@ Apr 18, 2012 | 2 | 1 | 50% | $0.88
 Apr 19, 2012 | 4 | 1 | 25% | $1.37
 
 ```html
+<div id="chart"></div>
 <table id="data">
 <thead>
     <tr>
@@ -50,14 +51,18 @@ Apr 19, 2012 | 4 | 1 | 25% | $1.37
 
 ### Call highchartsmaker plugin
 ```javascript
-$(target selector).highchartsMaker($(#data), {
+$('#chart').highchartsMaker($(#data), {
     // Options (or pass empty object for no special options)
     "yAxis":{
         "min":0
     },
-    "date_interval":86400000
+    "date_interval":86400000,
+    "title":"Example Chart"
 });
 ```
+
+### Result
+![Example Chart](example.png)
 
 ## Dependencies
 * [jQuery](https://jquery.com/)
